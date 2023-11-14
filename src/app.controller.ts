@@ -1,7 +1,11 @@
 import {Controller, Get, Inject} from '@nestjs/common';
 import {AppService} from './app.service';
-import {EventPattern} from '@nestjs/microservices';
-import {AzureServiceBusClient, AzureServiceBusPayload} from './azure-service-bus-transporter';
+import {Ctx, EventPattern, Payload} from '@nestjs/microservices';
+import {
+  AzureServiceBusClient,
+  ServiceBusReceivedMessage,
+  AzureServiceBusContext,
+} from './azure-service-bus-transporter';
 
 @Controller()
 export class AppController {
@@ -24,8 +28,7 @@ export class AppController {
       errorStrategy: {type: 'exponentialBackoff'}
     }
   )
-  async getHello(payload: AzureServiceBusPayload): Promise<string> {
-    console.log(payload.message);
+  async getHello(@Payload() data: ServiceBusReceivedMessage, @Ctx() context: AzureServiceBusContext): Promise<string> {
     return this.appService.getHello();
   }
 }

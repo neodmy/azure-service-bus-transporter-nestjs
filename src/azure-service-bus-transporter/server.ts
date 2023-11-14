@@ -7,6 +7,7 @@ import {
 } from '@azure/service-bus';
 import * as moment from 'moment';
 import {ClientOptions} from './client-options.interface';
+import {AzureServiceBusContext} from './context';
 
 type Subscription = { close(): Promise<void> }
 
@@ -36,10 +37,7 @@ type HandlerExtra = {
   errorStrategy: ErrorStrategy
 }
 
-export type AzureServiceBusPayload = {
-  message: ServiceBusReceivedMessage
-  receiver: ServiceBusReceiver
-}
+export type { ServiceBusReceivedMessage } from '@azure/service-bus';
 
 export class AzureServiceBusServer
   extends Server
@@ -53,8 +51,6 @@ export class AzureServiceBusServer
     super();
     this.receivers = new Map<string, ServiceBusReceiver>();
     this.subscriptions = new Map<string, Subscription>();
-    this.initializeSerializer(options);
-    this.initializeDeserializer(options);
   }
 
   private bindHandlers() {
@@ -62,14 +58,12 @@ export class AzureServiceBusServer
       const {subscriptionName, errorStrategy} = handler.extras as HandlerExtra;
       const receiver = this.client.createReceiver(topicName, subscriptionName);
       this.receivers.set(topicName, receiver);
+      const context = new AzureServiceBusContext(receiver);
       const subscription = receiver.subscribe(
         {
           processMessage: async (message: ServiceBusReceivedMessage): Promise<void> => {
             try {
-              await handler({
-                message,
-                receiver,
-              });
+              await handler(message, context);
               // @ts-ignore
               if (!message.delivery.remote_settled) await receiver.completeMessage(message);
             } catch (e) {
