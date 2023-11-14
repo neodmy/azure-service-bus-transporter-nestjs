@@ -41,7 +41,7 @@ export type AzureServiceBusPayload = {
   receiver: ServiceBusReceiver
 }
 
-export default class AzureServiceBusServer
+export class AzureServiceBusServer
   extends Server
   implements CustomTransportStrategy {
 

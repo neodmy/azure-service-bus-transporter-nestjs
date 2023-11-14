@@ -1,8 +1,7 @@
 import {Controller, Get, Inject} from '@nestjs/common';
 import {AppService} from './app.service';
 import {EventPattern} from '@nestjs/microservices';
-import {AzureServiceBusPayload} from './utils/server';
-import {AzureServiceBusClient} from './azure-service-bus-transporter';
+import {AzureServiceBusClient, AzureServiceBusPayload} from './azure-service-bus-transporter';
 
 @Controller()
 export class AppController {
