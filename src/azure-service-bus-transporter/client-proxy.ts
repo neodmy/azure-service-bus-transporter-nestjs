@@ -1,6 +1,10 @@
-import {ClientProxy, ReadPacket, WritePacket} from '@nestjs/microservices';
-import {ServiceBusClient, ServiceBusMessage, ServiceBusSender} from '@azure/service-bus';
-import {ClientOptions} from './client-options.interface';
+import { ClientProxy, ReadPacket, WritePacket } from '@nestjs/microservices';
+import {
+  ServiceBusClient,
+  ServiceBusMessage,
+  ServiceBusSender,
+} from '@azure/service-bus';
+import { ClientOptions } from './client-options.interface';
 
 export class AzureServiceBusClient extends ClientProxy {
   private client: ServiceBusClient;
@@ -23,7 +27,7 @@ export class AzureServiceBusClient extends ClientProxy {
   }
 
   async close(): Promise<void> {
-    for (let sender of this.senders.values()) {
+    for (const sender of this.senders.values()) {
       await sender.close();
     }
     if (this.client) {
@@ -41,7 +45,7 @@ export class AzureServiceBusClient extends ClientProxy {
   }
 
   private buildMessage(packet: Record<string, any>): ServiceBusMessage {
-    let body = packet.body;
+    const body = packet.body;
     const {
       subject,
       contentEncoding,
@@ -60,13 +64,15 @@ export class AzureServiceBusClient extends ClientProxy {
       scheduledEnqueueTimeUtc,
       ...messageFields,
       body,
-    }
+    };
   }
 
-  protected publish(packet: ReadPacket, callback: (packet: WritePacket) => void): () => void {
+  protected publish(
+    _packet: ReadPacket,
+    _callback: (packet: WritePacket) => void,
+  ): () => void {
     // request/response pattern not used in this module
-    return function () {
-    };
+    return function () {};
   }
 
   protected async dispatchEvent(packet: ReadPacket): Promise<any> {
@@ -74,7 +80,7 @@ export class AzureServiceBusClient extends ClientProxy {
     const serializedPacket = this.serializer.serialize(packet);
     const sender = this.getSender(pattern);
     const message = this.buildMessage(serializedPacket);
-    if(message.scheduledEnqueueTimeUtc) {
+    if (message.scheduledEnqueueTimeUtc) {
       await sender.scheduleMessages(message, message.scheduledEnqueueTimeUtc);
     } else {
       await sender.sendMessages(message);
